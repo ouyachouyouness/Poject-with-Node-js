@@ -25,19 +25,38 @@ let courses = [
 
 app.post('/api/courses', (req,res) => {
 
-    const schema = Joi.object({
-        title: Joi.string().alphanum().min(3).max(120).required()
+    
 
+    app.put('/api/courses/:id', (req,res) => {
+        //very course exisr or not 
+        let course = courses.find(course => course.id === parseInt(req.params.id))
+
+        if(!course){
+            res.status(404).send('course not found !!')
+        }
+        //validate course 
+        const schema = Joi.object({
+            title: Joi.string().alphanum().min(3).max(10).required()
+    
+        })
+    
+        const {error, value} = schema.validate(req.body)
+    
+        if(error){
+            res.status(400).send(error.details[0].message)
+        }
+        // modify course 
+
+        course.title = value.title
+        //send course 
+        res.send(course)
+    
     })
 
-    schema.validate(req.body)
-    if(!req.body.title || req.body.title.length <3){
-
-        res.status(400).send('title is required and must be great hten 3 caracter')
-    }
+    
     const course = {
         id: courses.length + 1,
-        title: req.body.title
+        title: value.title
     }
 
     courses = [...courses, course];
