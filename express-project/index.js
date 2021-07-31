@@ -1,14 +1,58 @@
 const express = require('express')
 const app = express()
 const Joi = require('joi')
+const helmet = require('helmet')
+const morgan = require('morgan')
+const config = require('config')
+const courses = require('./routers/courses')
+const home = require('./routers/home')
+const logged = require('./middleware/logged')
+
 
 app.use(express.json())
+app.set('view engine', 'pug');
+app.set('views', './views');
+app.use('/api/courses', courses)
+app.use('/', home)
+app.use(logged.log)
 
-let courses = [
-    {id : 1, title: 'Angular'},
-    {id : 2, title: 'React js'},
-    {id : 3, title: 'vue js'}
-]
+
+//Configuration
+console.log(`App Name: ${config.get('name')}`);
+console.log(`Mail server: ${config.get('mail.host')}`);
+console.log(`Mail password: ${config.get('mail.password')}`);
+
+
+
+
+console.log(`NODE_ENV: ${process.env}`);
+console.log(`Mode : ${app.get('env')}`);
+
+
+
+app.use(express.static('public'))
+if(app.get('env' === 'development'))
+{
+
+    app.use(morgan('tiny'))
+}
+app.use(express.urlencoded());
+app.use(helmet());
+app.use((req, res, next) => {
+    console.log('Ahutentificated...');
+    next()
+})
+
+
+
+
+//BASE
+
+
+const port = process.env.PORT || 3000;
+
+app.listen(port, () => console.log(`the app listening the port ${port} ...`))
+
 
 
 // app.get('/', (req, res) => {
@@ -22,52 +66,3 @@ let courses = [
 // app.get('/api/courses/:id' , (req,res) => {
 //     res.send(req.params.id, req.params.year, req.params.mounth)
 // })
-
-app.post('/api/courses', (req,res) => {
-
-    
-
-    app.put('/api/courses/:id', (req,res) => {
-        //very course exisr or not 
-        let course = courses.find(course => course.id === parseInt(req.params.id))
-
-        if(!course){
-            res.status(404).send('course not found !!')
-        }
-        //validate course 
-        const schema = Joi.object({
-            title: Joi.string().alphanum().min(3).max(10).required()
-    
-        })
-    
-        const {error, value} = schema.validate(req.body)
-    
-        if(error){
-            res.status(400).send(error.details[0].message)
-        }
-        // modify course 
-
-        course.title = value.title
-        //send course 
-        res.send(course)
-    
-    })
-
-    
-    const course = {
-        id: courses.length + 1,
-        title: value.title
-    }
-
-    courses = [...courses, course];
-
-    res.send(course)
-})
-
-app.get('/api/courses' , (req,res) => {
-    res.send(courses)
-})
-
-const port = process.env.PORT || 3000;
-
-app.listen(port, () => console.log(`the app listening the port ${port} ...`))
