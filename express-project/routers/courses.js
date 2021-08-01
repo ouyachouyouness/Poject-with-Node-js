@@ -18,6 +18,18 @@ let courses = [
 router.get('/', (req, res ) => {
     res.send(courses)
 })
+
+router.get('/:id', (req, res ) => {
+    let course = courses.find(course => course.id === parseInt(req.params.id))
+
+    if(!course){
+        res.status(404).send('course not found !!')
+    }else {
+        res.send(course)
+
+    }
+
+})
 //POST
 router.post('/', (req,res) => {
 
